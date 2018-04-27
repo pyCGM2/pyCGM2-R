@@ -353,11 +353,21 @@ addGaitDescriptiveEventsLines_bothContext<-function(fig,phaseTableDS){
 }
 
 
+normative_ribbon <- function(data) {
+  # programming as a new geom ( see https://rpubs.com/hadley/97970)
+  list(
+    geom_ribbon(data = data,
+                aes(ymin = Min, ymax = Max, x= Frame,group=interaction(Label,Axis)),
+                fill = "grey70",alpha = 0.4)
+    )
+}
 
 
 ### NEW PLOT PANEL  ####
 descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
-                                         colorFactor=NULL, linetypeFactor=NULL){
+                                         colorFactor=NULL, linetypeFactor=NULL,
+                                         normativeData=NULL){
+  
   
   
 
@@ -374,6 +384,8 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   Pelvis_X = descriptivePlot(descDf,  iContext , paste0(prefixe,"PelvisAngles"),"X", 
                              iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(0,60),
                              colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
+
+  
   Pelvis_Y = descriptivePlot(descDf,  iContext , paste0(prefixe,"PelvisAngles"),"Y", 
                              iTitle="Pelvic obliquity",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                              colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
@@ -456,6 +468,27 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   
   }
   
+  
+  if (!(is.null(normativeData))){
+    Pelvis_X = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "X"))  
+    Pelvis_Y = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Y"))  
+    Pelvis_Z = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Z"))  
+
+    Hip_X = Hip_X+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "X"))  
+    Hip_Y = Hip_Y+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "Y"))  
+    Hip_Z = Hip_Z+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "Z"))  
+    
+    Knee_X = Knee_X+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "X"))  
+    Knee_Y = Knee_Y+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "Y"))  
+    Knee_Z = Knee_Z+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "Z"))  
+    
+    Ankle_X = Ankle_X+normative_ribbon(filter(normativeData,Label=="AnkleAngles" & Axis == "X"))  
+    Ankle_Y = Ankle_Y+normative_ribbon(filter(normativeData,Label=="AnkleAngles" & Axis == "Y"))  
+    FootProgress_Z = FootProgress_Z+normative_ribbon(filter(normativeData,Label=="FootProgressAngles" & Axis == "Z"))
+  }
+    
+        
+  
   p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
   p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
   p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
@@ -475,7 +508,7 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   
 }
 
-descriptiveKinematicGaitPanel_both<- function(descDf,descEvents){
+descriptiveKinematicGaitPanel_both<- function(descDf,descEvents=NULL,normativeData=NULL){
   # 
   
     
@@ -535,8 +568,27 @@ descriptiveKinematicGaitPanel_both<- function(descDf,descEvents){
     Ankle_X=addGaitDescriptiveEventsLines_bothContext(Ankle_X,descEvents)
     Ankle_Y=addGaitDescriptiveEventsLines_bothContext(Ankle_Y,descEvents)
     FootProgress_Z=addGaitDescriptiveEventsLines_bothContext(FootProgress_Z,descEvents)
-      }
+  }
 
+  if (!(is.null(normativeData))){
+    Pelvis_X = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "X"))  
+    Pelvis_Y = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Y"))  
+    Pelvis_Z = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Z"))  
+    
+    Hip_X = Hip_X+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "X"))  
+    Hip_Y = Hip_Y+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "Y"))  
+    Hip_Z = Hip_Z+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "Z"))  
+    
+    Knee_X = Knee_X+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "X"))  
+    Knee_Y = Knee_Y+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "Y"))  
+    Knee_Z = Knee_Z+normative_ribbon(filter(normativeData,Label=="KneeAngles" & Axis == "Z"))  
+    
+    Ankle_X = Ankle_X+normative_ribbon(filter(normativeData,Label=="AnkleAngles" & Axis == "X"))  
+    Ankle_Y = Ankle_Y+normative_ribbon(filter(normativeData,Label=="AnkleAngles" & Axis == "Y"))  
+    FootProgress_Z = FootProgress_Z+normative_ribbon(filter(normativeData,Label=="FootProgressAngles" & Axis == "Z"))
+  }
+  
+  
   
   p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
   p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
@@ -561,7 +613,8 @@ descriptiveKinematicGaitPanel_both<- function(descDf,descEvents){
 
 
 descriptiveKineticGaitPanel<- function(descDf,descEvents, iContext,
-                                         colorFactor=NULL, linetypeFactor=NULL){
+                                         colorFactor=NULL, linetypeFactor=NULL,
+                                       normativeData=NULL){
   
   
   
@@ -672,7 +725,26 @@ descriptiveKineticGaitPanel<- function(descDf,descEvents, iContext,
                                           colorFactor=colorFactor, linetypeFactor=linetypeFactor  )
     
   }
+  if (!(is.null(normativeData))){
+
+    Hip_X = Hip_X+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "X"))  
+    Hip_Y = Hip_Y+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "Y"))  
+    Hip_Z = Hip_Z+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "Z"))  
+    Hip_Power = Hip_Power+normative_ribbon(filter(normativeData,Label=="HipPower" & Axis == "Z"))  
+    
+        
+    Knee_X = Knee_X+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "X"))  
+    Knee_Y = Knee_Y+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "Y"))  
+    Knee_Z = Knee_Z+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "Z"))  
+    Knee_Power = Knee_Power+normative_ribbon(filter(normativeData,Label=="KneePower" & Axis == "Z"))  
   
+    Ankle_X = Ankle_X+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "X"))  
+    Ankle_Y = Ankle_Y+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "Y"))  
+    Ankle_Z = Ankle_Z+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "Z"))  
+    Ankle_Power = Ankle_Power+normative_ribbon(filter(normativeData,Label=="AnklePower" & Axis == "Z"))  
+    
+  
+    }
   
   p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_power,ncol=4)
   p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_power,ncol=4)
@@ -692,7 +764,8 @@ descriptiveKineticGaitPanel<- function(descDf,descEvents, iContext,
 }
 
 
-descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL){
+descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL,
+                                            normativeData=NULL){
   # 
   
   
@@ -765,6 +838,27 @@ descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL){
     
   }
   
+  if (!(is.null(normativeData))){
+    
+    Hip_X = Hip_X+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "X"))  
+    Hip_Y = Hip_Y+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "Y"))  
+    Hip_Z = Hip_Z+normative_ribbon(filter(normativeData,Label=="HipMoment" & Axis == "Z"))  
+    Hip_Power = Hip_Power+normative_ribbon(filter(normativeData,Label=="HipPower" & Axis == "Z"))  
+    
+    
+    Knee_X = Knee_X+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "X"))  
+    Knee_Y = Knee_Y+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "Y"))  
+    Knee_Z = Knee_Z+normative_ribbon(filter(normativeData,Label=="KneeMoment" & Axis == "Z"))  
+    Knee_Power = Knee_Power+normative_ribbon(filter(normativeData,Label=="KneePower" & Axis == "Z"))  
+    
+    Ankle_X = Ankle_X+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "X"))  
+    Ankle_Y = Ankle_Y+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "Y"))  
+    Ankle_Z = Ankle_Z+normative_ribbon(filter(normativeData,Label=="AnkleMoment" & Axis == "Z"))  
+    Ankle_Power = Ankle_Power+normative_ribbon(filter(normativeData,Label=="AnklePower" & Axis == "Z"))  
+    
+    
+  }
+  
   
   p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_Power,ncol=4)
   p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_Power,ncol=4)
@@ -783,720 +877,3 @@ descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL){
   
   
 
-### OLD ####
-gaitPlot<-function(gatherFramesDescTbl,iContext, iLabel,iAxis,iTitle="",yLabel="Deg",
-                   scaleToMeter=1,
-                   ylimits=NULL,
-                   iGatherPhaseDescTable=NULL,
-                   blackPhaseColor=FALSE,
-                   greyPalette = NULL,
-                   horizontalLines=NULL){
-
-
-  iData = filter(gatherFramesDescTbl, Label %in% iLabel & Axis ==iAxis & Context %in% iContext)  
-  
-  fig = ggplot() + 
-        xlab("Time Normalized")+
-        ylab(yLabel)+
-        ggtitle(iTitle)+
-        theme(panel.grid.minor = element_blank(),
-              axis.title.x =      element_text(size = 10),
-              axis.text.x  = element_blank(), 
-              axis.ticks.x = element_blank(),
-              axis.title.y =  element_text(size = 10),
-              axis.text.y  = element_text(size=8),
-              legend.text = element_text(size = 8),
-              legend.title=element_blank(),
-              plot.title = element_text(family="Times", face="plain", size=10),
-              legend.position='None') 
-  
-  if (all(iContext == c("Left","Right"))){
-    fig = fig + geom_line(data=iData,
-                          aes(x=Frame,y=MeanValues/scaleToMeter,
-                              color= Context,
-                              linetype=ComparisonFactor,
-                              group=interaction(ComparisonFactor,Label,Context,Axis)),
-                          size=0.5)
-    fig = fig  + scale_color_manual(values=c("red", "blue"))
-    
-  } else {
-    fig =  fig +geom_line(data=iData,
-              aes(x=Frame,y=MeanValues/scaleToMeter,
-                  color=ComparisonFactor,
-                  group=interaction(ComparisonFactor,Label,Context,Axis)),
-              size=1)
-    
-  }
-  
-  if (!is.null(iGatherPhaseDescTable)){
-    
-    if (iContext == "Both"){
-      
-      fig = fig + geom_vline( data = filter(iGatherPhaseDescTable,Factor == "stancePhase"),
-                              aes(xintercept=Mean,
-                                  color = Context,
-                                  linetype=ComparisonFactor,
-                                  group=interaction(ComparisonFactor,Context)))
-      
-      
-    } else if (iContext == "Overall") {
-      
-      if (!blackPhaseColor){
-        fig = fig + geom_vline( data = filter(iGatherPhaseDescTable,Factor == "stancePhase"),
-                                aes(xintercept=Mean,
-                                    color=ComparisonFactor))
-      } else {
-        fig = fig + geom_vline( data = filter(iGatherPhaseDescTable,Factor == "stancePhase"),
-                                aes(xintercept=Mean), color= "black")
-      }  
-      
-    } else {
-      fig = fig + geom_vline( data = filter(iGatherPhaseDescTable,Factor == "stancePhase"),
-                              aes(xintercept=Mean,
-                                  color=ComparisonFactor,
-                                  group=interaction(ComparisonFactor,Context)))
-        
-    }
-    
-    
-  }
-
-  
-  if (!is.null(ylimits)){ fig = fig + ylim(ylimits[1],ylimits[2])}  
-  if (!is.null(horizontalLines)){ 
-    
-    for (i in horizontalLines){
-      fig = fig + geom_hline(yintercept=i)
-    }
-  }
-
-  
-  fig  
-
-  
-  return(fig)
-  
-}
-
-
-kinematicGaitPanel<- function(gatherFramesDescTbl,iContext, iGatherPhaseDescTable=NULL,blackPhaseColorFlag=FALSE,greyPalette=FALSE){
-  
-  
-  if (iContext == "Overall") {
-  
-    Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"X", iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"Y",iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"Z",iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext, c("HipAngles"),"X",iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("HipAngles"),"Y",iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("HipAngles"),"Z",iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"X",iTitle="Knee flexion",ylimits = c(-15,75), iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"Y",iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"Z",iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleAngles"),"X",iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleAngles"),"Y",iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    FootProgress_Z = gaitPlot(gatherFramesDescTbl,iContext,c("FootProgressAngles" ),"Z",iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-  
-    } else if (iContext == "Both"){ 
-  
-      Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"X", iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"Y",iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"Z",iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      
-      Hip_X = gaitPlot(gatherFramesDescTbl,iContext, c("LHipAngles","RHipAngles"),"X",iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LHipAngles","RHipAngles"),"Y",iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LHipAngles","RHipAngles"),"Z",iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      
-      Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"X",iTitle="Knee flexion",ylimits = c(-15,75),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"Y",iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"Z",iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      
-      Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleAngles","RAnkleAngles"),"X",iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleAngles","RAnkleAngles"),"Y",iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-      FootProgress_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LFootProgressAngles","RFootProgressAngles" ),"Z",iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-
-  }  else {
-    
-    if (iContext == "Left"){LabelPrefix = "L"}
-    else if (iContext == "Right"){LabelPrefix = "R"}
-  
-    Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"X",iContext, iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Y",iContext,iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Z",iContext,iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"X",iContext,iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"Y",iContext,iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"Z",iContext,iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"X",iContext,iTitle="Knee flexion",ylimits = c(-15,75),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"Y",iContext,iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"Z",iContext,iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"AnkleAngles",sep="")),"X",iContext,iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"AnkleAngles",sep="")),"Y",iContext,iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    FootProgress_Z = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"FootProgressAngles",sep="") ),"Z",iContext,iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-  }
-  
-  
-  if (greyPalette){
-    Pelvis_X = Pelvis_X+scale_colour_grey()
-    Pelvis_Y = Pelvis_Y+scale_colour_grey()
-    Pelvis_Z = Pelvis_Z+scale_colour_grey()
-    Hip_X = Hip_X+scale_colour_grey()
-    Hip_Y = Hip_Y+scale_colour_grey()
-    Hip_Z = Hip_Z+scale_colour_grey()
-    Knee_X = Knee_X+scale_colour_grey()
-    Knee_Y = Knee_Y+scale_colour_grey()
-    Knee_Z = Knee_Z+scale_colour_grey()
-    Ankle_X = Ankle_X+scale_colour_grey()
-    Ankle_Y = Ankle_Y+scale_colour_grey()
-    FootProgress_Z = FootProgress_Z+scale_colour_grey()
-  }
-  
-  
-  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
-  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
-  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
-  p4 = plot_grid(Ankle_X, Ankle_Y,FootProgress_Z,ncol=3)
-  
-
-  legend_shared <- get_legend(Pelvis_X +  theme(legend.position=c(0.3,0.8),legend.direction = "horizontal"))
-#                                theme(legend.position="center"))
-  
-  fig = plot_grid(p1, p2,p3, p4,
-            legend_shared,
-            nrow = 5,rel_heights = c(1,1,1,1, .2))  
-  
-  fig
-  
-  return(fig)
-  
-  }
-
-
-kineticGaitPanel<- function(gatherFramesDescTbl,iContext,scaleToMeter=1000,iGatherPhaseDescTable=NULL,blackPhaseColorFlag=FALSE,greyPalette=FALSE){
-  
-  
-  if (iContext == "Overall") {
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext,c("HipMoment"),"X",iTitle="Hip extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-2.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("HipMoment"),"Y",iTitle="Hip abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 2.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("HipMoment"),"Z",iTitle="Hip rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_power = gaitPlot(gatherFramesDescTbl,iContext,c("HipPower"),"Z",iTitle="Hip power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0), iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("KneeMoment"),"X",iTitle="Knee extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("KneeMoment"),"Y",iTitle="Knee abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("KneeMoment"),"Z",iTitle="Knee rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_power = gaitPlot(gatherFramesDescTbl,iContext,c("KneePower"),"Z",iTitle="Knee power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleMoment"),"X",iTitle="Ankle extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleMoment"),"Y",iTitle="Ankle  evertor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Z = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleMoment"),"Z",iTitle="Ankle abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_power = gaitPlot(gatherFramesDescTbl,iContext,c("AnklePower"),"Z",iTitle="Ankle power",yLabel="W.kg-1",ylimits = c(-2.0, 5.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    
-    
-  } else if (iContext == "Both"){ 
-    
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext,c("LHipMoment","RHipMoment"),"X",iTitle="Hip extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-2.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LHipMoment","RHipMoment"),"Y",iTitle="Hip abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 2.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LHipMoment","RHipMoment"),"Z",iTitle="Hip rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_power = gaitPlot(gatherFramesDescTbl,iContext,c("LHipPower","RHipPower"),"Z",iTitle="Hip power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0), iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeMoment","RKneeMoment"),"X",iTitle="Knee extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeMoment","RKneeMoment"),"Y",iTitle="Knee abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeMoment","RKneeMoment"),"Z",iTitle="Knee rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_power = gaitPlot(gatherFramesDescTbl,iContext,c("LKneePower","RKneePower"),"Z",iTitle="Knee power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleMoment","RAnkleMoment"),"X",iTitle="Ankle extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleMoment","RAnkleMoment"),"Y",iTitle="Ankle  evertor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleMoment","RAnkleMoment"),"Z",iTitle="Ankle abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_power = gaitPlot(gatherFramesDescTbl,iContext,c("LAnklePower","RAnklePower"),"Z",iTitle="Ankle power",yLabel="W.kg-1",ylimits = c(-2.0, 5.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    
-
-  } else {
-    
-    if (iContext == "Left"){
-      LabelPrefix = "L"
-    }
-    else if (iContext == "Right"){LabelPrefix = "R"}
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipMoment",sep="")),"X",iContext,iTitle="Hip extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-2.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipMoment",sep="")),"Y",iContext,iTitle="Hip abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 2.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipMoment",sep="")),"Z",iContext,iTitle="Hip rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_power = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipPower",sep="")),"Z",iContext,iTitle="Hip power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeMoment",sep="")),"X",iContext,iTitle="Knee extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeMoment",sep="")),"Y",iContext,iTitle="Knee abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 1.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeMoment",sep="")),"Z",iContext,iTitle="Knee rotation moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_power = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneePower",sep="")),"Z",iContext,iTitle="Knee power",yLabel="W.kg-1",ylimits = c(-3.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag) 
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"AnkleMoment",sep="")),"X",iContext,iTitle="Ankle extensor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-1.0, 3.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"AnkleMoment",sep="")),"Y",iContext,iTitle="Ankle evertor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    Ankle_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"AnkleMoment",sep="")),"Z",iContext,iTitle="Ankle abductor moment",yLabel="N.m.kg-1",scaleToMeter=scaleToMeter,ylimits = c(-0.5, 0.5),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_power = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"AnklePower",sep="")),"Z",iContext,iTitle="Ankle power",yLabel="W.kg-1",ylimits = c(-2.0, 5.0),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)  
-    
-  }
-
-  if (greyPalette){
-    Hip_X = Hip_X+scale_colour_grey()
-    Hip_Y = Hip_Y+scale_colour_grey()
-    Hip_Z = Hip_Z+scale_colour_grey()
-    Hip_power = Hip_power+scale_colour_grey()
-    Knee_X = Knee_X+scale_colour_grey()
-    Knee_Y = Knee_Y+scale_colour_grey()
-    Knee_Z = Knee_Z+scale_colour_grey()
-    Knee_power = Knee_power+scale_colour_grey()
-    Ankle_X = Ankle_X+scale_colour_grey()
-    Ankle_Y = Ankle_Y+scale_colour_grey()
-    Ankle_Z = Ankle_Z+scale_colour_grey()
-    Ankle_power = Ankle_power+scale_colour_grey()
-  }
-  
-  p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_power,ncol=4)
-  p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_power,ncol=4)
-  p3 = plot_grid(Ankle_X, Ankle_Y,Ankle_Z,Ankle_power,ncol=4)
-  
-  legend_shared <- get_legend(Hip_X +  theme(legend.position=c(0.3,0.8),legend.direction = "horizontal"))
-
-  fig = plot_grid(p1,p2,p3,legend_shared, 
-            nrow = 4, rel_heights = c(1,1,1,.2))
-  
-  fig
-  
-  return(fig)
-  
-}
-
-
-
-kinematicGaitPanel2<- function(gatherFramesDescTbl,iContext, iGatherPhaseDescTable=NULL,blackPhaseColorFlag=FALSE,greyPalette=FALSE){
-  
-  
-  if (iContext == "Overall") {
-    
-    Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"X", iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"Y",iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c("PelvisAngles"),"Z",iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext, c("HipAngles"),"X",iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("HipAngles"),"Y",iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("HipAngles"),"Z",iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"X",iTitle="Knee flexion",ylimits = c(-15,75), iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"Y",iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("KneeAngles"),"Z",iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleAngles"),"X",iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("AnkleAngles"),"Y",iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    FootProgress_Z = gaitPlot(gatherFramesDescTbl,iContext,c("FootProgressAngles" ),"Z",iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-
-    ForeFoot_X = gaitPlot(gatherFramesDescTbl,iContext,c("ForeFootAngles"),"X",iTitle="ForeFoot dorsiflexion", ylimits =c(-50,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Y = gaitPlot(gatherFramesDescTbl,iContext,c("ForeFootAngles"),"Y",iTitle="ForeFoot eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Z = gaitPlot(gatherFramesDescTbl,iContext,c("ForeFootAngles" ),"Z",iTitle="ForeFoot abduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)    
-    
-        
-  } else if (iContext == "Both"){ 
-    
-    Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"X", iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"Y",iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LPelvisAngles","RPelvisAngles"),"Z",iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext, c("LHipAngles","RHipAngles"),"X",iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LHipAngles","RHipAngles"),"Y",iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LHipAngles","RHipAngles"),"Z",iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"X",iTitle="Knee flexion",ylimits = c(-15,75),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"Y",iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LKneeAngles","RKneeAngles"),"Z",iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleAngles","RAnkleAngles"),"X",iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LAnkleAngles","RAnkleAngles"),"Y",iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    FootProgress_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LFootProgressAngles","RFootProgressAngles" ),"Z",iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    ForeFoot_X = gaitPlot(gatherFramesDescTbl,iContext,c("LForeFootAngles","RForeFootAngles"),"X",iTitle="ForeFoot dorsiflexion", ylimits =c(-50,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Y = gaitPlot(gatherFramesDescTbl,iContext,c("LForeFootAngles","RForeFootAngles"),"Y",iTitle="ForeFoot eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Z = gaitPlot(gatherFramesDescTbl,iContext,c("LForeFootAngles","RForeFootAngles"),"Z",iTitle="ForeFoot abduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)    
-    
-    
-        
-  }  else {
-    
-    if (iContext == "Left"){LabelPrefix = "L"}
-    else if (iContext == "Right"){LabelPrefix = "R"}
-    
-    Pelvis_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"X",iContext, iTitle="Pelvic tilt",ylimits = c(0,60),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Y",iContext,iTitle="Pelvic obliquity", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Pelvis_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Z",iContext,iTitle="Pelvic rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Hip_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"X",iContext,iTitle="Hip flexion",ylimits = c(-20,70),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"Y",iContext,iTitle="Hip adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Hip_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"HipAngles",sep="")),"Z",iContext,iTitle="Hip rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Knee_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"X",iContext,iTitle="Knee flexion",ylimits = c(-15,75),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"Y",iContext,iTitle="Knee adduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Knee_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste(LabelPrefix,"KneeAngles",sep="")),"Z",iContext,iTitle="Knee rotation", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    
-    Ankle_X = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"AnkleAngles",sep="")),"X",iContext,iTitle="Ankle dorsiflexion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    Ankle_Y = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"AnkleAngles",sep="")),"Y",iContext,iTitle="Ankle eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    FootProgress_Z = gaitPlot(gatherFramesDescTbl,c(paste(LabelPrefix,"FootProgressAngles",sep="") ),"Z",iContext,iTitle="Foot progression", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-
-    ForeFoot_X = gaitPlot(gatherFramesDescTbl,iContext,c(paste0(LabelPrefix,"ForeFootAngles")),"X",iTitle="ForeFoot dorsiflexion", ylimits =c(-50,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Y = gaitPlot(gatherFramesDescTbl,iContext,c(paste0(LabelPrefix,"ForeFootAngles")),"Y",iTitle="ForeFoot eversion", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)
-    ForeFoot_Z = gaitPlot(gatherFramesDescTbl,iContext,c(paste0(LabelPrefix,"ForeFootAngles" )),"Z",iTitle="ForeFoot abduction", ylimits =c(-30,30),iGatherPhaseDescTable=iGatherPhaseDescTable,blackPhaseColor=blackPhaseColorFlag)    
-    
-    
-    
-      }
-  
-  
-  if (greyPalette){
-    Pelvis_X = Pelvis_X+scale_colour_grey()
-    Pelvis_Y = Pelvis_Y+scale_colour_grey()
-    Pelvis_Z = Pelvis_Z+scale_colour_grey()
-    Hip_X = Hip_X+scale_colour_grey()
-    Hip_Y = Hip_Y+scale_colour_grey()
-    Hip_Z = Hip_Z+scale_colour_grey()
-    Knee_X = Knee_X+scale_colour_grey()
-    Knee_Y = Knee_Y+scale_colour_grey()
-    Knee_Z = Knee_Z+scale_colour_grey()
-    Ankle_X = Ankle_X+scale_colour_grey()
-    Ankle_Y = Ankle_Y+scale_colour_grey()
-    FootProgress_Z = FootProgress_Z+scale_colour_grey()
-
-    ForeFoot_X = ForeFoot_X+scale_colour_grey()
-    ForeFoot_Y = ForeFoot_Y+scale_colour_grey()
-    ForeFoot_Z = ForeFoot_Z+scale_colour_grey()
-    
-      }
-  
-  
-  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
-  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
-  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
-  p4 = plot_grid(Ankle_X, Ankle_Y,FootProgress_Z,ncol=3)
-  p5 = plot_grid(ForeFoot_X, ForeFoot_Y,ForeFoot_Z,ncol=3)
-  
-  legend_shared <- get_legend(Pelvis_X +  theme(legend.position=c(0.3,0.8),legend.direction = "horizontal"))
-  #                                theme(legend.position="center"))
-  
-  fig = plot_grid(p1, p2,p3, p4,p5,
-                  legend_shared,
-                  nrow = 6,rel_heights = c(1,1,1,1,1, .2))  
-  
-  fig
-  
-  return(fig)
-  
-}
-
-
-
-
-### OLD ####
-plot_onCompararison_bothContexts<- function(tableStatsFull,iLabel,iAxis,iTitle="",yLabel="Deg"){
-  
-
-  
-  data_X = filter(tableStatsFull, Label %in% iLabel & Axis ==iAxis)  
-  fig = ggplot() + geom_line(data=data_X,
-                             aes(x=Frame,y=MeanValues,
-                                 color=ComparisonFactor,linetype=Context,
-                                 group=interaction(ComparisonFactor,Label,Context,Axis)),
-                             size=0.5)+
-    scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
-    ggtitle(iTitle)+
-    theme(panel.grid.minor = element_blank(),
-          axis.title.x =      element_text(size = 10),
-          axis.text.x  = element_blank(), 
-          axis.ticks.x = element_blank(),
-          axis.title.y =  element_text(size = 10),
-          axis.text.y  = element_text(size=8),
-          legend.text = element_text(size = 8),
-          legend.title = element_text(size = 10,face="plain"),
-          plot.title = element_text(family="Times", face="plain", size=10),
-          legend.position='None')
-  fig
-  return(fig)
-}
-
-plot_onCompararison_oneContext<- function(tableStatsFull,iLabel,iAxis,iContext, iTitle="",yLabel="Deg",legendPos="None"){
-  
-  
-
-  data_X = filter(tableStatsFull, Label %in% iLabel & Axis ==iAxis & Context ==iContext)  
-  fig = ggplot() + geom_line(data=data_X,
-                             aes(x=Frame,y=MeanValues,
-                                 color=ComparisonFactor,
-                                 group=interaction(ComparisonFactor,Label,Context,Axis)),
-                             size=1)+
-    scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
-    ggtitle(iTitle)+
-    theme(panel.grid.minor = element_blank(),
-          axis.title.x =      element_text(size = 10),
-          axis.text.x  = element_blank(), 
-          axis.ticks.x = element_blank(),
-          axis.title.y =  element_text(size = 10),
-          axis.text.y  = element_text(size=8),
-          legend.text = element_text(size = 8),
-          legend.title = element_text(size = 10,face="plain"),
-          plot.title = element_text(family="Times", face="plain", size=10),
-          legend.position=legendPos)
-  fig
-  
-  return(fig)
-}
-
-plot_onCompararison_overall<- function(gatherFramesTbl,iGlobalLabel,iAxis, iTitle="",yLabel="Deg", iStancePhase=0){
-  
-  
-  
-  data_X = filter(gatherFramesTbl, GlobalLabel %in% iGlobalLabel & Axis ==iAxis)  
-  fig = ggplot() + geom_line(data=data_X,
-                             aes(x=Frame,y=MeanValues,
-                                 color=ComparisonFactor,
-                                 group=interaction(ComparisonFactor,GlobalLabel,Axis)),
-                             size=0.5)+
-    scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
-    ggtitle(iTitle)+
-    theme(panel.grid.minor = element_blank(),
-          axis.title.x =      element_text(size = 10),
-          axis.text.x  = element_blank(), 
-          axis.ticks.x = element_blank(),
-          axis.title.y =  element_text(size = 10),
-          axis.text.y  = element_text(size=8),
-          legend.text = element_text(size = 8),
-          legend.title = element_text(size = 10,face="plain"),
-          plot.title = element_text(family="Times", face="plain", size=10),
-          legend.position='None')
-  
-  if (iStancePhase != 0){fig = fig + geom_vline(xintercept=iStancePhase)}
-  
-  
-  
-  return(fig)
-}
-
-# KINEMATIC PLOTS -----------------------------------------------------------
-
-
-kinematicGaitPlots_onComparison_bothContexts<- function(tableStatsFull){
-  
-  
-  Pelvis_X = plot_onCompararison_bothContexts(tableStatsFull,c("LPelvisAngles","RPelvisAngles"),"X",iTitle="Pelvic tilt")
-  Pelvis_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LPelvisAngles","RPelvisAngles"),"Y",iTitle="Pelvic obliquity")
-  Pelvis_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LPelvisAngles","RPelvisAngles"),"Z",iTitle="Pelvic rotation")
-  
-  Hip_X = plot_onCompararison_bothContexts(tableStatsFull,c("LHipAngles","RHipAngles"),"X",iTitle="Hip flexion")
-  Hip_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LHipAngles","RHipAngles"),"Y",iTitle="Hip adduction")
-  Hip_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LHipAngles","RHipAngles"),"Z",iTitle="Hip rotation")
-  
-  Knee_X = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeAngles","RKneeAngles"),"X",iTitle="Knee flexion")
-  Knee_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeAngles","RKneeAngles"),"Y",iTitle="Knee adduction")
-  Knee_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeAngles","RKneeAngles"),"Z",iTitle="Knee rotation")
-  
-  Ankle_X = plot_onCompararison_bothContexts(tableStatsFull,c("LAnkleAngles","RAnkleAngles"),"X",iTitle="Ankle dorsiflexion")
-  Ankle_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LAnkleAngles","RAnkleAngles"),"Y",iTitle="Ankle eversion")
-  FootProgress_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LFootProgressAngles","RFootProgressAngles"),"Z",iTitle="Foot progression")
-  
-  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
-  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
-  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
-  p4 = plot_grid(Ankle_X, Ankle_Z,FootProgress_Z,ncol=3)
-  
-  legend_shared <- get_legend(Pelvis_X + theme(legend.position="bottom"))
-  
-  plot_grid(p1, p2,p3, p4,
-            legend_shared,
-            nrow = 5,rel_heights = c(1,1,1,1, .2))  
-
-}
-
-
-kinematicGaitPlots_onComparison_oneContext<- function(tableStatsFull,iContext){
-  
-  if (iContext == "Left"){
-    LabelPrefix = "L"
-  }
-  else if (iContext == "Right"){LabelPrefix = "R"}
-  
-    
-  
-  
-  Pelvis_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"PelvisAngles",sep="")),"X",iContext, iTitle="Pelvic tilt")
-  Pelvis_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Y",iContext,iTitle="Pelvic obliquity")
-  Pelvis_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"PelvisAngles",sep="")),"Z",iContext,iTitle="Pelvic rotation")
-  
-  Hip_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipAngles",sep="")),"X",iContext,iTitle="Hip flexion")
-  Hip_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipAngles",sep="")),"Y",iContext,iTitle="Hip adduction")
-  Hip_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipAngles",sep="")),"Z",iContext,iTitle="Hip rotation")
-  
-  Knee_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeAngles",sep="")),"X",iContext,iTitle="Knee flexion")
-  Knee_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeAngles",sep="")),"Y",iContext,iTitle="Knee adduction")
-  Knee_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeAngles",sep="")),"Z",iContext,iTitle="Knee rotation")
-  
-  Ankle_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnkleAngles",sep="")),"X",iContext,iTitle="Ankle dorsiflexion")
-  Ankle_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnkleAngles",sep="")),"Y",iContext,iTitle="Ankle eversion")
-  FootProgress_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"FootProgressAngles",sep="") ),"Z",iContext,iTitle="Foot progression")
-  
-  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
-  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
-  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
-  p4 = plot_grid(Ankle_X, Ankle_Y,FootProgress_Z,ncol=3)
-  
-  legend_shared <- get_legend(Pelvis_X + theme(legend.position="bottom"))
-  
-  plot_grid(p1, p2,p3, p4,
-            legend_shared,
-            nrow = 5,rel_heights = c(1,1,1,1, .2))  
-}
-
-kinematicGaitPlots_onComparison_overall<- function(gatherFrameTbl,iStancePhase=0){
-  
-
-  Pelvis_X = plot_onCompararison_overall(gatherFrameTbl,c("PelvisAngles"),"X", iTitle="Pelvic tilt",iStancePhase=iStancePhase)
-  Pelvis_Y = plot_onCompararison_overall(gatherFrameTbl,c("PelvisAngles"),"Y",iTitle="Pelvic obliquity",iStancePhase=iStancePhase)
-  Pelvis_Z = plot_onCompararison_overall(gatherFrameTbl,c("PelvisAngles"),"Z",iTitle="Pelvic rotation",iStancePhase=iStancePhase)
-  
-  Hip_X = plot_onCompararison_overall(gatherFrameTbl,c("HipAngles"),"X",iTitle="Hip flexion",iStancePhase=iStancePhase)
-  Hip_Y = plot_onCompararison_overall(gatherFrameTbl,c("HipAngles"),"Y",iTitle="Hip adduction",iStancePhase=iStancePhase)
-  Hip_Z = plot_onCompararison_overall(gatherFrameTbl,c("HipAngles"),"Z",iTitle="Hip rotation",iStancePhase=iStancePhase)
-  
-  Knee_X = plot_onCompararison_overall(gatherFrameTbl,c("KneeAngles"),"X",iTitle="Knee flexion",iStancePhase=iStancePhase)
-  Knee_Y = plot_onCompararison_overall(gatherFrameTbl,c("KneeAngles"),"Y",iTitle="Knee adduction",iStancePhase=iStancePhase)
-  Knee_Z = plot_onCompararison_overall(gatherFrameTbl,c("KneeAngles"),"Z",iTitle="Knee rotation",iStancePhase=iStancePhase)
-  
-  Ankle_X = plot_onCompararison_overall(gatherFrameTbl,c("AnkleAngles"),"X",iTitle="Ankle dorsiflexion",iStancePhase=iStancePhase)
-  Ankle_Y = plot_onCompararison_overall(gatherFrameTbl,c("AnkleAngles"),"Y",iTitle="Ankle eversion",iStancePhase=iStancePhase)
-  FootProgress_Z = plot_onCompararison_overall(gatherFrameTbl,c("FootProgressAngles" ),"Z",iTitle="Foot progression",iStancePhase=iStancePhase)
-  
-  p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
-  p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)
-  p3 = plot_grid(Knee_X, Knee_Y,Knee_Z,ncol=3)
-  p4 = plot_grid(Ankle_X, Ankle_Y,FootProgress_Z,ncol=3)
-  
-  legend_shared <- get_legend(Pelvis_X + theme(legend.position="bottom"))
-  
-  plot_grid(p1, p2,p3, p4,
-            legend_shared,
-            nrow = 5,rel_heights = c(1,1,1,1, .2))  
-}
-
-# KINETIC PLOTS -----------------------------------------------------------
-
-
-  
-kineticGaitPlots_onComparison_bothContexts<- function(tableStatsFull){
-  
-  
-  Hip_X = plot_onCompararison_bothContexts(tableStatsFull,c("LHipMoment","RHipMoment"),"X",iTitle="Hip extensor moment",yLabel="N.mm.kg-1")  
-  Hip_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LHipMoment","RHipMoment"),"Y",iTitle="Hip abductor moment",yLabel="N.mm.kg-1")  
-  Hip_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LHipMoment","RHipMoment"),"Z",iTitle="Hip rotation moment",yLabel="N.mm.kg-1")
-  Hip_power = plot_onCompararison_bothContexts(tableStatsFull,c("LHipPower","RHipPower"),"Z",iTitle="Hip power",yLabel="W.kg-1") 
-  
-  Knee_X = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeMoment","RKneeMoment"),"X",iTitle="Knee extensor moment",yLabel="N.mm.kg-1")  
-  Knee_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeMoment","RKneeMoment"),"Y",iTitle="Knee abductor moment",yLabel="N.mm.kg-1")  
-  Knee_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LKneeMoment","RKneeMoment"),"Z",iTitle="Knee rotation moment",yLabel="N.mm.kg-1")
-  Knee_power = plot_onCompararison_bothContexts(tableStatsFull,c("LKneePower","RKneePower"),"Z",iTitle="Knee power",yLabel="W.kg-1") 
-  
-  Ankle_X = plot_onCompararison_bothContexts(tableStatsFull,c("LAnkleMoment","RAnkleMoment"),"X",iTitle="Ankle extensor moment",yLabel="N.mm.kg-1")  
-  Ankle_Y = plot_onCompararison_bothContexts(tableStatsFull,c("LAnkleMoment","RAnkleMoment"),"Y",iTitle="Ankle evertor moment",yLabel="N.mm.kg-1")  
-  Ankle_Z = plot_onCompararison_bothContexts(tableStatsFull,c("LAnkleMoment","RAnkleMoment"),"Z",iTitle="Ankle abductor moment",yLabel="N.mm.kg-1")
-  Ankle_power = plot_onCompararison_bothContexts(tableStatsFull,c("LAnklePower","RAnklePower"),"Z",iTitle="Ankle power",yLabel="W.kg-1")  
-  
-  
-  
-  p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_power,ncol=4)
-  p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_power,ncol=4)
-  p3 = plot_grid(Ankle_X, Ankle_Y,Ankle_Z,Ankle_power,ncol=4)
-  
-  #p1
-  
-  
-  legend_shared <- get_legend(Hip_X + theme(legend.position="bottom"))
-  # 
-  plot_grid(p1,p2,p3,legend_shared, 
-            nrow = 4, rel_heights = c(1,1,1,.2))
-  
-  
-  
-} 
-
-kineticGaitPlots_onComparison_oneContext<- function(tableStatsFull,iContext){
-  
-  if (iContext == "Left"){
-    LabelPrefix = "L"
-  }
-  else if (iContext == "Right"){LabelPrefix = "R"}
-  
-  
-  Hip_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipMoment",sep="")),"X",iContext,iTitle="Hip extensor moment",yLabel="N.mm.kg-1")  
-  Hip_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipMoment",sep="")),"Y",iContext,iTitle="Hip abductor moment",yLabel="N.mm.kg-1")  
-  Hip_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipMoment",sep="")),"Z",iContext,iTitle="Hip rotation moment",yLabel="N.mm.kg-1")
-  Hip_power = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"HipPower",sep="")),"Z",iContext,iTitle="Hip power",yLabel="W.kg-1") 
-  
-  Knee_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeMoment",sep="")),"X",iContext,iTitle="Knee extensor moment",yLabel="N.mm.kg-1")  
-  Knee_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeMoment",sep="")),"Y",iContext,iTitle="Knee abductor moment",yLabel="N.mm.kg-1")  
-  Knee_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneeMoment",sep="")),"Z",iContext,iTitle="Knee rotation moment",yLabel="N.mm.kg-1")
-  Knee_power = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"KneePower",sep="")),"Z",iContext,iTitle="Knee power",yLabel="W.kg-1") 
-  
-  Ankle_X = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnkleMoment",sep="")),"X",iContext,iTitle="Ankle extensor moment",yLabel="N.mm.kg-1")  
-  Ankle_Y = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnkleMoment",sep="")),"Y",iContext,iTitle="Ankle evertor moment",yLabel="N.mm.kg-1")  
-  Ankle_Z = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnkleMoment",sep="")),"Z",iContext,iTitle="Ankle abductor moment",yLabel="N.mm.kg-1")
-  Ankle_power = plot_onCompararison_oneContext(tableStatsFull,c(paste(LabelPrefix,"AnklePower",sep="")),"Z",iContext,iTitle="Ankle power",yLabel="W.kg-1")  
-  
-  
-  
-  p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_power,ncol=4)
-  p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_power,ncol=4)
-  p3 = plot_grid(Ankle_X, Ankle_Y,Ankle_Z,Ankle_power,ncol=4)
-  
-  #p1
-  
-  
-  legend_shared <- get_legend(Hip_X + theme(legend.position="bottom"))
-  # 
-  plot_grid(p1,p2,p3,legend_shared, 
-            nrow = 4, rel_heights = c(1,1,1,.2))
-  
-}
-
-kineticGaitPlots_onComparison_overall<- function(tableStatsFull){
-  
-
-  Hip_X = plot_onCompararison_overall(tableStatsFull,c("HipMoment"),"X",iTitle="Hip extensor moment",yLabel="N.mm.kg-1")  
-  Hip_Y = plot_onCompararison_overall(tableStatsFull,c("HipMoment"),"Y",iTitle="Hip abductor moment",yLabel="N.mm.kg-1")  
-  Hip_Z = plot_onCompararison_overall(tableStatsFull,c("HipMoment"),"Z",iTitle="Hip rotation moment",yLabel="N.mm.kg-1")
-  Hip_power = plot_onCompararison_overall(tableStatsFull,c("HipPower"),"Z",iTitle="Hip power",yLabel="W.kg-1") 
-  
-  Knee_X = plot_onCompararison_overall(tableStatsFull,c("KneeMoment"),"X",iTitle="Knee extensor moment",yLabel="N.mm.kg-1")  
-  Knee_Y = plot_onCompararison_overall(tableStatsFull,c("KneeMoment"),"Y",iTitle="Knee abductor moment",yLabel="N.mm.kg-1")  
-  Knee_Z = plot_onCompararison_overall(tableStatsFull,c("KneeMoment"),"Z",iTitle="Knee rotation moment",yLabel="N.mm.kg-1")
-  Knee_power = plot_onCompararison_overall(tableStatsFull,c("KneePower"),"Z",iTitle="Knee power",yLabel="W.kg-1") 
-  
-  Ankle_X = plot_onCompararison_overall(tableStatsFull,c("AnkleMoment"),"X",iTitle="Ankle extensor moment",yLabel="N.mm.kg-1")  
-  Ankle_Y = plot_onCompararison_overall(tableStatsFull,c("AnkleMoment"),"Y",iTitle="Ankle  evertor moment",yLabel="N.mm.kg-1")  
-  Ankle_Z = plot_onCompararison_overall(tableStatsFull,c("AnkleMoment"),"Z",iTitle="Ankle abductor moment",yLabel="N.mm.kg-1")
-  Ankle_power = plot_onCompararison_overall(tableStatsFull,c("AnklePower"),"Z",iTitle="Ankle power",yLabel="W.kg-1")  
-  
-  
-  
-  p1 = plot_grid(Hip_X, Hip_Y,Hip_Z,Hip_power,ncol=4)
-  p2 = plot_grid(Knee_X, Knee_Y,Knee_Z,Knee_power,ncol=4)
-  p3 = plot_grid(Ankle_X, Ankle_Y,Ankle_Z,Ankle_power,ncol=4)
-  
-  #p1
-  
-  
-  legend_shared <- get_legend(Hip_X + theme(legend.position="bottom"))
-  # 
-  plot_grid(p1,p2,p3,legend_shared, 
-            nrow = 4, rel_heights = c(1,1,1,.2))
-  
-}

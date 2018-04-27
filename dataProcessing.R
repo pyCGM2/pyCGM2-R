@@ -201,7 +201,19 @@ descriptiveGait<- function(kinematicTable,bySubjectFlag=TRUE){
   
   return (list(Frames = descFrames, Events = descEvents ))
 }
+
+
+#----Normative dataset methods-----
+
+longTableTransformation<- function(table){ 
+  table_transform = table  %>%
+    gather(Frame, Values,  Frame0:Frame100)%>%
+    unite(temp, StatType) %>%
+    spread(temp, Values)%>%
+    mutate(Max= mean+sd, Min = mean-sd )
   
+  return(table_transform)
+}
 
 
 
