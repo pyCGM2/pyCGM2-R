@@ -62,8 +62,8 @@ getNumberOfCycles<-function(table,label,axis){
 }
 
 
-#### Descriptive stats NEW ####
 
+#### Descriptive stats NEW ####
 
 descritiveStats<- function(table,factors,ComparativeLabel,bySubjectFlag=TRUE){
   
@@ -163,6 +163,7 @@ FrameValues_descritiveStats<- function(table,ComparativeLabel,bySubjectFlag=TRUE
     out$Id = "All"
   }  
   
+  out$Cycle = 1
   out$Index = seq(1,nrow(out))
 
   return( out) 
@@ -214,7 +215,6 @@ longTableTransformation<- function(table){
   
   return(table_transform)
 }
-
 
 
 
