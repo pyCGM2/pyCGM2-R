@@ -17,7 +17,7 @@ consistencyPlot<-function(framesTable, iContext , iLabel,iAxis,
   
   fig = ggplot() + 
     scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
+    ylab(yLabel)+#scale_y_continuous(name=yLabel)+
     ggtitle(iTitle)+
     theme(panel.grid.minor = element_blank(),
           axis.title.x =      element_text(size = 10),
@@ -85,7 +85,9 @@ consistencyPlot<-function(framesTable, iContext , iLabel,iAxis,
 descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis, 
                           iTitle="",yLabel="Deg", legendPosition = "none",
                           colorFactor=NULL,facetFactor=NULL,linetypeFactor=NULL,
-                          ylimits=NULL){
+                          ylimits=NULL,
+                          lineWidth=0.5,
+                          sccm = NULL){
   
   gatherFramesTbl = gather_FrameValues_DescritiveStats( framesTableDS)    
   
@@ -95,10 +97,10 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
   
     
   
-  fig = ggplot() + 
-    scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
+  fig = ggplot() +
     ggtitle(iTitle)+
+    scale_x_discrete(name="Time Normalized")+
+    ylab(yLabel)+#scale_y_continuous(name=yLabel)+
     theme(panel.grid.minor = element_blank(),
           axis.title.x =      element_text(size = 10),
           axis.text.x  = element_blank(), 
@@ -130,21 +132,21 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
                                      color = colorFactor,
                                      linetype = linetypeFactor,
                                      group = "inter"),
-                          size=0.5)
+                          size=lineWidth)
   } else if ((!is.null(colorFactor)) &&   (is.null(linetypeFactor))){
     
     fig = fig + geom_line(data=iData,  
                           aes_string(x="Frame",y="Values",
                                      color = colorFactor,
                                      group = "inter"),
-                          size=0.5)
+                          size=lineWidth)
   } else if ((is.null(colorFactor)) &&   !(is.null(linetypeFactor))){
   
   fig = fig + geom_line(data=iData,  
                         aes_string(x="Frame",y="Values",
                                    linetype = linetypeFactor,
                                    group = "inter"),
-                        size=0.5)
+                        size=lineWidth)
   } else {
     
     
@@ -152,7 +154,7 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
                           aes_string(x="Frame",y="Values",
                                      color = "Context",
                                      group = "inter"),
-                          size=0.5)
+                          size=lineWidth)
     
     if (iContext=="Left"){
       fig = fig + scale_color_manual(values=c("red"))
@@ -167,6 +169,10 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
   if (!is.null(facetFactor)){ fig =  fig+facet_grid(paste0(".~", facetFactor))}
     
 
+  if (!is.null(sccm))
+    fig =  fig+scale_colour_manual(values = sccm)
+  
+  
   return(fig)
   
 }
@@ -194,7 +200,7 @@ consistencyPlot_bothContext<-function(framesTable,  iLabelLeft,iAxisLeft, iLabel
   
   fig = ggplot() + 
     scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
+    ylab(yLabel)+#scale_y_continuous(name=yLabel)+
     ggtitle(iTitle)+
     theme(panel.grid.minor = element_blank(),
           axis.title.x =      element_text(size = 10),
@@ -258,7 +264,7 @@ descriptivePlot_bothContext<-function(framesTableDS,  iLabelLeft,iAxisLeft, iLab
   
   fig = ggplot() + 
     scale_x_discrete(name="Time Normalized")+
-    scale_y_continuous(name=yLabel)+
+    ylab(yLabel)+#scale_y_continuous(name=yLabel)+
     ggtitle(iTitle)+
     theme(panel.grid.minor = element_blank(),
           axis.title.x =      element_text(size = 10),
@@ -416,13 +422,13 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   
   
   Ankle_X = descriptivePlot(descDf,  iContext , paste0(prefixe,"AnkleAngles"),"X", 
-                            iTitle="Knee flexion",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
+                            iTitle="Ankle flexion",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                             colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   Ankle_Y = descriptivePlot(descDf,  iContext , paste0(prefixe,"AnkleAngles"),"Y", 
-                            iTitle="Knee Abd",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
+                            iTitle="Ankle Abd",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                             colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   FootProgress_Z = descriptivePlot(descDf,  iContext , paste0(prefixe,"FootProgressAngles"),"Z", 
-                                   iTitle="Knee rot",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
+                                   iTitle="Foot progression",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                                    colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   if (!(is.null(descEvents))){
