@@ -130,6 +130,15 @@ gather_DescritiveStats<- function(DS,ComparativeLabel,factors){
   return(final)
 }
 
+getStdCorridorLimits<- function(tableDf){ 
+  table_transform = tableDf  %>%
+    gather(Frame, Values,  Frame0:Frame100)%>%
+    select(-Index) %>%
+    spread(Stats, Values)%>%
+    mutate(Max= mean+std, Min = mean-std )
+  
+  return(table_transform)
+}
 
 
 
@@ -215,6 +224,9 @@ longTableTransformation<- function(table){
   
   return(table_transform)
 }
+
+
+
 
 
 

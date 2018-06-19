@@ -86,8 +86,7 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
                           iTitle="",yLabel="Deg", legendPosition = "none",
                           colorFactor=NULL,facetFactor=NULL,linetypeFactor=NULL,
                           ylimits=NULL,
-                          lineWidth=0.5,
-                          sccm = NULL){
+                          lineWidth=0.5){
   
   gatherFramesTbl = gather_FrameValues_DescritiveStats( framesTableDS)    
   
@@ -169,10 +168,6 @@ descriptivePlot<-function(framesTableDS, iContext , iLabel,iAxis,
   if (!is.null(facetFactor)){ fig =  fig+facet_grid(paste0(".~", facetFactor))}
     
 
-  if (!is.null(sccm))
-    fig =  fig+scale_colour_manual(values = sccm)
-  
-  
   return(fig)
   
 }
@@ -369,10 +364,33 @@ normative_ribbon <- function(data) {
 }
 
 
+std_ribbon <- function(dataDf,color) {
+  # programming as a new geom ( see https://rpubs.com/hadley/97970)
+  
+  data = getStdCorridorLimits(dataDf)
+  
+  list(
+    geom_ribbon(data = data,
+                aes(ymin = Min, ymax = Max,fill = ComparisonFactor, x= Frame,group=interaction(ComparisonFactor,Label,Axis)),
+                alpha = 0.4)
+  )
+}
+
+# ribbon <- function(data) {
+#   # programming as a new geom ( see https://rpubs.com/hadley/97970)
+#   list(
+#     geom_ribbon(data = data,
+#                 aes(ymin = Min, ymax = Max, x= Frame,group=interaction(Label,Axis)),
+#                 fill = "grey70",alpha = 0.4)
+#   )
+# }
+
+
+
 ### NEW PLOT PANEL  ####
 descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
                                          colorFactor=NULL, linetypeFactor=NULL,
-                                         normativeData=NULL){
+                                         normativeData=NULL,stdCorridor=FALSE){
   
   
   
@@ -388,10 +406,9 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   
   # trace uni
   Pelvis_X = descriptivePlot(descDf,  iContext , paste0(prefixe,"PelvisAngles"),"X", 
-                             iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(0,60),
+                             iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(0,60),
                              colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
 
-  
   Pelvis_Y = descriptivePlot(descDf,  iContext , paste0(prefixe,"PelvisAngles"),"Y", 
                              iTitle="Pelvic obliquity",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                              colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
@@ -492,7 +509,34 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
     Ankle_Y = Ankle_Y+normative_ribbon(filter(normativeData,Label=="AnkleAngles" & Axis == "Y"))  
     FootProgress_Z = FootProgress_Z+normative_ribbon(filter(normativeData,Label=="FootProgressAngles" & Axis == "Z"))
   }
+  
+  if (stdCorridor){  
     
+    data = getStdCorridorLimits(descDf)
+    
+    # Pelvis_X = Pelvis_X +
+    #   geom_ribbon(data = filter(data,Label=="PelvisAngles" & Axis == "X"),
+    #               aes(ymin = Min, ymax = Max,fill = ComparisonFactor, x= Frame,group=interaction(ComparisonFactor,Label,Axis)),
+    #               alpha = 0.4)
+  
+    Pelvis_X = Pelvis_X + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "X"),colorFactor)
+    Pelvis_Y = Pelvis_Y + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "Y"),colorFactor)
+    Pelvis_Z = Pelvis_Z + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "Z"),colorFactor)
+     
+    Hip_X = Hip_X + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "X"),colorFactor)
+    Hip_Y = Hip_Y + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "Y"),colorFactor)
+    Hip_Z = Hip_Z + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "Z"),colorFactor)
+     
+    Knee_X = Knee_X + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "X"),colorFactor)
+    Knee_Y = Knee_Y + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "Y"),colorFactor)
+    Knee_Z = Knee_Z + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "Z"),colorFactor)
+     
+    Ankle_X = Ankle_X + std_ribbon(filter(descDf,Label=="AnkleAngles" & Axis == "X"),colorFactor)
+    Ankle_Y = Ankle_Y + std_ribbon(filter(descDf,Label=="AnkleAngles" & Axis == "Y"),colorFactor)
+    FootProgress_Z = FootProgress_Z + std_ribbon(filter(descDf,Label=="FootProgressAngles" & Axis == "Z"),colorFactor)
+    
+        
+    }
         
   
   p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
@@ -519,44 +563,44 @@ descriptiveKinematicGaitPanel_both<- function(descDf,descEvents=NULL,normativeDa
   
     
   Pelvis_X = descriptivePlot_bothContext(descDf, "LPelvisAngles","X", "RPelvisAngles","X",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(0,60))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(0,60))  
   
   Pelvis_Y = descriptivePlot_bothContext(descDf, "LPelvisAngles","Y", "RPelvisAngles","Y",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   Pelvis_Z = descriptivePlot_bothContext(descDf, "LPelvisAngles","Z", "RPelvisAngles","Z",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   
   Hip_X = descriptivePlot_bothContext(descDf, "LHipAngles","X", "RHipAngles","X",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-20,70))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-20,70))  
   
   Hip_Y = descriptivePlot_bothContext(descDf, "LHipAngles","Y", "RHipAngles","Y",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   Hip_Z = descriptivePlot_bothContext(descDf, "LHipAngles","Z", "RHipAngles","Z",
-                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                         iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   
   
   Knee_X = descriptivePlot_bothContext(descDf, "LKneeAngles","X", "RKneeAngles","X",
-                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-15,75))  
+                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-15,75))  
   
   Knee_Y = descriptivePlot_bothContext(descDf, "LKneeAngles","Y", "RKneeAngles","Y",
-                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   Knee_Z = descriptivePlot_bothContext(descDf, "LKneeAngles","Z", "RKneeAngles","Z",
-                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                      iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
 
   Ankle_X = descriptivePlot_bothContext(descDf, "LAnkleAngles","X", "RAnkleAngles","X",
-                                       iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                       iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
   
   Ankle_Y = descriptivePlot_bothContext(descDf, "LAnkleAngles","Y", "RAnkleAngles","Y",
                                        iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
   
   FootProgress_Z = descriptivePlot_bothContext(descDf, "LFootProgressAngles","Z", "RFootProgressAngles","Z",
-                                       iTitle="Pelvic tilt",yLabel="Deg", legendPosition="top",ylimits=c(-30,30))  
+                                       iTitle="Pelvic tilt",yLabel="Deg", legendPosition="none",ylimits=c(-30,30))  
 
   if (!(is.null(descEvents))){
     Pelvis_X=addGaitDescriptiveEventsLines_bothContext(Pelvis_X,descEvents)
@@ -635,54 +679,54 @@ descriptiveKineticGaitPanel<- function(descDf,descEvents, iContext,
   
 
   Hip_X = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"HipMoment"),"X", 
-                             iTitle="Hip extensor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-2.0,3.0),
+                             iTitle="Hip extensor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-2.0,3.0),
                              colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Hip_Y = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"HipMoment"),"Y", 
-                          iTitle="Hip abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,2.0),
+                          iTitle="Hip abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,2.0),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
 
   Hip_Z = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"HipMoment"),"Z", 
-                          iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5),
+                          iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Hip_Power = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"HipPower"),"Z", 
-                          iTitle="Hip power",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-3.0,3.0),
+                          iTitle="Hip power",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-3.0,3.0),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
 
   Knee_X = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"KneeMoment"),"X", 
-                          iTitle="Knee extensor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,1.0),
+                          iTitle="Knee extensor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,1.0),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Knee_Y = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"KneeMoment"),"Y", 
-                          iTitle="Knee abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,1.0),
+                          iTitle="Knee abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,1.0),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Knee_Z = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"KneeMoment"),"Z", 
-                          iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5),
+                          iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5),
                           colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Knee_Power = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"KneePower"),"Z", 
-                              iTitle="Knee power",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-3.0,3.0),
+                              iTitle="Knee power",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-3.0,3.0),
                               colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   
   
   Ankle_X = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"AnkleMoment"),"X", 
-                           iTitle="Ankle extensor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,3.0),
+                           iTitle="Ankle extensor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,3.0),
                            colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Ankle_Y = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"AnkleMoment"),"Y", 
-                           iTitle="Ankle abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5),
+                           iTitle="Ankle abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5),
                            colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Ankle_Z = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"AnkleMoment"),"Z", 
-                           iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5),
+                           iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5),
                            colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   Ankle_Power = descriptivePlot(descDf, iSubjects, "Overall" , paste0(prefixe,"AnklePower"),"Z", 
-                               iTitle="Ankle power",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-2.0,5.0),
+                               iTitle="Ankle power",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-2.0,5.0),
                                colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   
   
@@ -777,36 +821,36 @@ descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL,
   
   Hip_X = descriptivePlot_bothContext(descDf, "LHipMoment","X", "RHipMoment","X",
                                          
-                                         iTitle="Hip extensor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-2.0,3.0))  
+                                         iTitle="Hip extensor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-2.0,3.0))  
   
   Hip_Y = descriptivePlot_bothContext(descDf, "LHipMoment","Y", "RHipMoment","Y",
                                          
-                                         iTitle="Hip abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,2.0))  
+                                         iTitle="Hip abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,2.0))  
   
   Hip_Z = descriptivePlot_bothContext(descDf, "LHipMoment","Z", "RHipMoment","Z",
                                          
-                                         iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5))  
+                                         iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5))  
   
   Hip_Power = descriptivePlot_bothContext(descDf, "LHipMoment","Z", "RHipMoment","Z",
                                       
-                                      iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-3.0,3.0))  
+                                      iTitle="Hip rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-3.0,3.0))  
 
   
   Knee_X = descriptivePlot_bothContext(descDf, "LKneeMoment","X", "RKneeMoment","X",
                                       
-                                      iTitle="Knee extensor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,1.0))  
+                                      iTitle="Knee extensor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,1.0))  
                                       
   Knee_Y = descriptivePlot_bothContext(descDf, "LKneeMoment","Y", "RKneeMoment","Y",
                                       
-                                      iTitle="Knee abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-1.0,1.0))  
+                                      iTitle="Knee abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-1.0,1.0))  
   
   Knee_Z = descriptivePlot_bothContext(descDf, "LKneeMoment","Z", "RKneeMoment","Z",
                                       
-                                      iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5))  
+                                      iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5))  
   
   Knee_Power = descriptivePlot_bothContext(descDf, "LKneeMoment","Z", "RKneeMoment","Z",
                                           
-                                          iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-3.0,3.0))  
+                                          iTitle="Knee rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-3.0,3.0))  
                                       
   Ankle_X = descriptivePlot_bothContext(descDf, "LAnkleMoment","X", "RAnkleMoment","X",
                                       
@@ -814,15 +858,15 @@ descriptiveKineticGaitPanel_both<- function(descDf,descEvents=NULL,
   
   Ankle_Y = descriptivePlot_bothContext(descDf, "LAnkleMoment","Y", "RAnkleMoment","Y",
                                       
-                                      iTitle="Ankle abductor moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5))  
+                                      iTitle="Ankle abductor moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5))  
   
   Ankle_Z = descriptivePlot_bothContext(descDf, "LAnkleMoment","Z", "RAnkleMoment","Z",
                                       
-                                      iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-0.5,0.5))  
+                                      iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-0.5,0.5))  
   
   Ankle_Power = descriptivePlot_bothContext(descDf, "LAnkleMoment","Z", "RAnkleMoment","Z",
                                           
-                                          iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="top",ylimits=c(-5.0,5.0))  
+                                          iTitle="Ankle rotator moment",yLabel="N.m.kg-1", legendPosition="none",ylimits=c(-5.0,5.0))  
   
   
   if (!(is.null(descEvents))){
