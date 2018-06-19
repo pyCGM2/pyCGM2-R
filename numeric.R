@@ -9,15 +9,27 @@ library(irr)
 
 
 
-metrics_onFrames<- function(table,metricsFunction,factor1,factor2,comparisonLabel=NULL){
+metrics_onFrames<- function(table,metricsFunction,factor1,factor2,comparisonLabel=NULL,frameIndexes=NULL){
+
+  # metrics_onFrames(kinematicTable,"rmse",  "ANKsta","Rigid",comparisonLabel = "ank_rigid")
+  # metrics_onFrames(kinematicTable,"rmse",  "ANKsta","Rigid",comparisonLabel = "ank_rigid", frameIndexes = c("001","100) ) 
   
-  apply_metrics<-function(df,metricsFunction ,factor1,factor2){
+  apply_metrics<-function(df,metricsFunction ,factor1,factor2,frameIndexes=NULL){
     
-    b1 = which( colnames(wide_Table)==paste(factor1,"_Frame0",sep="" ))
-    e1 = which( colnames(wide_Table)==paste(factor1,"_Frame100",sep="" ))
-    
-    b2 = which( colnames(wide_Table)==paste(factor2,"_Frame0",sep="" ))
-    e2 = which( colnames(wide_Table)==paste(factor2,"_Frame100",sep="" ))
+    if (is.null(frameIndexes)){
+      b1 = which( colnames(wide_Table)==paste(factor1,"_Frame0",sep="" ))
+      e1 = which( colnames(wide_Table)==paste(factor1,"_Frame100",sep="" ))
+      
+      b2 = which( colnames(wide_Table)==paste(factor2,"_Frame0",sep="" ))
+      e2 = which( colnames(wide_Table)==paste(factor2,"_Frame100",sep="" ))
+    } else {
+      b1 = which( colnames(wide_Table)==paste0(factor1,"_Frame",frameIndexes[1]))
+      e1 = which( colnames(wide_Table)==paste0(factor1,"_Frame",frameIndexes[2]))
+      
+      b2 = which( colnames(wide_Table)==paste0(factor2,"_Frame",frameIndexes[1]))
+      e2 = which( colnames(wide_Table)==paste0(factor2,"_Frame",frameIndexes[2]))
+      
+    }
     
     valueA = as.numeric(df[b1:e1])
     valueB = as.numeric(df[b2:e2])  
@@ -44,7 +56,7 @@ metrics_onFrames<- function(table,metricsFunction,factor1,factor2,comparisonLabe
   
   out = wide_Table%>%
     rowwise()%>%
-    do(data.frame(metricsFunction = apply_metrics(., metricsFunction,factor1,factor2)))%>%
+    do(data.frame(metricsFunction = apply_metrics(., metricsFunction,factor1,factor2,frameIndexes = frameIndexes)))%>%
     bind_cols(wide_Table%>%
                 select(Id,Label,Axis,Cycle,Context))
   
@@ -151,6 +163,7 @@ MinDetectableChange <- function(table, factors){
 
 
 
+
 metrics_onCycleDiscreteValue<- function(table,metricsFunction,DiscreteLabel,factor1,factor2,comparisonLabel=NULL){
   
   apply_metrics<-function(df,metricsFunction ,factor1,factor2){
@@ -186,5 +199,64 @@ metrics_onCycleDiscreteValue<- function(table,metricsFunction,DiscreteLabel,fact
    
    names(out)[names(out) == "metricsFunction"] <- metricsFunction  
   
+  return(out)
+}
+
+
+LinearFit_onFrames<- function(table,factor1,factor2,comparisonLabel=NULL,frameIndexes=NULL){
+
+
+  apply_lm<-function(df,factor1,factor2,frameIndexes=NULL){
+    
+    if (is.null(frameIndexes)){
+      b1 = which( colnames(wide_Table)==paste(factor1,"_Frame0",sep="" ))
+      e1 = which( colnames(wide_Table)==paste(factor1,"_Frame100",sep="" ))
+      
+      b2 = which( colnames(wide_Table)==paste(factor2,"_Frame0",sep="" ))
+      e2 = which( colnames(wide_Table)==paste(factor2,"_Frame100",sep="" ))
+    } else {
+      b1 = which( colnames(wide_Table)==paste0(factor1,"_Frame",frameIndexes[1]))
+      e1 = which( colnames(wide_Table)==paste0(factor1,"_Frame",frameIndexes[2]))
+      
+      b2 = which( colnames(wide_Table)==paste0(factor2,"_Frame",frameIndexes[1]))
+      e2 = which( colnames(wide_Table)==paste0(factor2,"_Frame",frameIndexes[2]))
+      
+    }
+    
+    valueA = as.numeric(df[b1:e1])
+    valueB = as.numeric(df[b2:e2])  
+    
+    model = lm(valueA~valueB)
+    model_sum = summary(model)
+    out = list(a0 = model$coefficients[1], a1 = model$coefficients[2], R2 = model_sum$adj.r.squared )
+    
+    return (out)
+  }
+  
+  
+  if ("Stats" %in% names(table)){
+    table =  filter(table, Stats == "mean")
+  }
+  
+  
+  wide_Table = table %>%
+    select(ComparisonFactor,Id,Label,Axis,Cycle,Context,Frame0:Frame100)%>%
+    gather(Frames, Value, Frame0:Frame100)%>%
+    unite(temp, ComparisonFactor, Frames) %>%
+    spread(temp, Value)
+  wide_Table$Index=seq(1,nrow(wide_Table))
+  
+  #ta =apply(wide_Table,1, processRms,indexA_begin,indexA_end,indexB_begin,indexB_end)
+  
+  out = wide_Table%>%
+    rowwise()%>%
+    do(data.frame(a0 = apply_lm(.,factor1,factor2,frameIndexes)$a0, a1 = apply_lm(.,factor1,factor2,frameIndexes = frameIndexes)$a1, R2 = apply_lm(.,factor1,factor2,frameIndexes = frameIndexes)$R2))%>%
+    bind_cols(wide_Table%>%
+                select(Id,Label,Axis,Cycle,Context))
+  
+  if (is.null(comparisonLabel)){comparisonLabel = paste0(factor1,"_",factor2)} 
+  out["ComparisonLabel"] = comparisonLabel
+  
+
   return(out)
 }
