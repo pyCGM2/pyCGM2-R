@@ -24,3 +24,8 @@ FRAMES = c("Frame0",           "Frame001",         "Frame002",         "Frame003
            "Frame080",         "Frame081"    ,     "Frame082",         "Frame083",         "Frame084",         "Frame085",         "Frame086",         "Frame087",         "Frame088",        
            "Frame089",         "Frame090"    ,     "Frame091",         "Frame092",         "Frame093",         "Frame094" ,        "Frame095",         "Frame096",         "Frame097",        
            "Frame098",         "Frame099"    ,     "Frame100")
+
+getColumIndex <- function(table, colname){
+    index = which( colnames(table)==colname)
+    return(index)
+    }  
