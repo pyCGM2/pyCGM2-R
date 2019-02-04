@@ -364,7 +364,7 @@ normative_ribbon <- function(data) {
 }
 
 
-std_ribbon <- function(dataDf,color) {
+std_ribbon <- function(dataDf) {
   # programming as a new geom ( see https://rpubs.com/hadley/97970)
   
   data = getStdCorridorLimits(dataDf)
@@ -390,7 +390,8 @@ std_ribbon <- function(dataDf,color) {
 ### NEW PLOT PANEL  ####
 descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
                                          colorFactor=NULL, linetypeFactor=NULL,
-                                         normativeData=NULL,stdCorridor=FALSE){
+                                         normativeData=NULL,stdCorridor=FALSE,
+                                         manualLineType=NULL,manualSizeType=NULL){
   
   
   
@@ -442,7 +443,7 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
                             iTitle="Ankle flexion",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                             colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   Ankle_Y = descriptivePlot(descDf,  iContext , paste0(prefixe,"AnkleAngles"),"Y", 
-                            iTitle="Ankle Abd",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
+                            iTitle="Ankle eversion",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
                             colorFactor = colorFactor,linetypeFactor = linetypeFactor, facetFactor = NULL)
   FootProgress_Z = descriptivePlot(descDf,  iContext , paste0(prefixe,"FootProgressAngles"),"Z", 
                                    iTitle="Foot progression",yLabel="Deg", legendPosition="none",ylimits=c(-30,30),
@@ -494,8 +495,8 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
   
   if (!(is.null(normativeData))){
     Pelvis_X = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "X"))  
-    Pelvis_Y = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Y"))  
-    Pelvis_Z = Pelvis_X+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Z"))  
+    Pelvis_Y = Pelvis_Y+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Y"))  
+    Pelvis_Z = Pelvis_Z+normative_ribbon(filter(normativeData,Label=="PelvisAngles" & Axis == "Z"))  
 
     Hip_X = Hip_X+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "X"))  
     Hip_Y = Hip_Y+normative_ribbon(filter(normativeData,Label=="HipAngles" & Axis == "Y"))  
@@ -519,25 +520,64 @@ descriptiveKinematicGaitPanel<- function(descDf,descEvents, iContext,
     #               aes(ymin = Min, ymax = Max,fill = ComparisonFactor, x= Frame,group=interaction(ComparisonFactor,Label,Axis)),
     #               alpha = 0.4)
   
-    Pelvis_X = Pelvis_X + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "X"),colorFactor)
-    Pelvis_Y = Pelvis_Y + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "Y"),colorFactor)
-    Pelvis_Z = Pelvis_Z + std_ribbon(filter(descDf,Label=="PelvisAngles" & Axis == "Z"),colorFactor)
+    Pelvis_X = Pelvis_X + std_ribbon(filter(descDf,Label==paste0(prefixe,"PelvisAngles") & Axis == "X"))
+    Pelvis_Y = Pelvis_Y + std_ribbon(filter(descDf,Label==paste0(prefixe,"PelvisAngles") & Axis == "Y"))
+    Pelvis_Z = Pelvis_Z + std_ribbon(filter(descDf,Label==paste0(prefixe,"PelvisAngles") & Axis == "Z"))
      
-    Hip_X = Hip_X + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "X"),colorFactor)
-    Hip_Y = Hip_Y + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "Y"),colorFactor)
-    Hip_Z = Hip_Z + std_ribbon(filter(descDf,Label=="HipAngles" & Axis == "Z"),colorFactor)
+    Hip_X = Hip_X + std_ribbon(filter(descDf,Label==paste0(prefixe,"HipAngles") & Axis == "X"))
+    Hip_Y = Hip_Y + std_ribbon(filter(descDf,Label==paste0(prefixe,"HipAngles") & Axis == "Y"))
+    Hip_Z = Hip_Z + std_ribbon(filter(descDf,Label==paste0(prefixe,"HipAngles") & Axis == "Z"))
      
-    Knee_X = Knee_X + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "X"),colorFactor)
-    Knee_Y = Knee_Y + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "Y"),colorFactor)
-    Knee_Z = Knee_Z + std_ribbon(filter(descDf,Label=="KneeAngles" & Axis == "Z"),colorFactor)
+    Knee_X = Knee_X + std_ribbon(filter(descDf,Label==paste0(prefixe,"KneeAngles") & Axis == "X"))
+    Knee_Y = Knee_Y + std_ribbon(filter(descDf,Label==paste0(prefixe,"KneeAngles") & Axis == "Y"))
+    Knee_Z = Knee_Z + std_ribbon(filter(descDf,Label==paste0(prefixe,"KneeAngles") & Axis == "Z"))
      
-    Ankle_X = Ankle_X + std_ribbon(filter(descDf,Label=="AnkleAngles" & Axis == "X"),colorFactor)
-    Ankle_Y = Ankle_Y + std_ribbon(filter(descDf,Label=="AnkleAngles" & Axis == "Y"),colorFactor)
-    FootProgress_Z = FootProgress_Z + std_ribbon(filter(descDf,Label=="FootProgressAngles" & Axis == "Z"),colorFactor)
+    Ankle_X = Ankle_X + std_ribbon(filter(descDf,Label==paste0(prefixe,"AnkleAngles") & Axis == "X"))
+    Ankle_Y = Ankle_Y + std_ribbon(filter(descDf,Label==paste0(prefixe,"AnkleAngles") & Axis == "Y"))
+    FootProgress_Z = FootProgress_Z + std_ribbon(filter(descDf,Label==paste0(prefixe,"FootProgressAngles") & Axis == "Z"))
+
+  }
+  
+  if (!(is.null(manualLineType))){
+    Pelvis_X = Pelvis_X + scale_linetype_manual(values=manualLineType)
+    Pelvis_Y = Pelvis_Y + scale_linetype_manual(values=manualLineType)
+    Pelvis_Z = Pelvis_Z + scale_linetype_manual(values=manualLineType)
     
-        
-    }
-        
+    Hip_X = Hip_X + scale_linetype_manual(values=manualLineType)
+    Hip_Y = Hip_Y + scale_linetype_manual(values=manualLineType)
+    Hip_Z = Hip_Z + scale_linetype_manual(values=manualLineType)
+    
+    Knee_X = Knee_X + scale_linetype_manual(values=manualLineType)
+    Knee_Y = Knee_Y + scale_linetype_manual(values=manualLineType)
+    Knee_Z = Knee_Z + scale_linetype_manual(values=manualLineType)
+    
+    Ankle_X = Ankle_X + scale_linetype_manual(values=manualLineType)
+    Ankle_Y = Ankle_Y + scale_linetype_manual(values=manualLineType)
+    FootProgress_Z = FootProgress_Z + scale_linetype_manual(values=manualLineType)
+    
+  }
+  
+  if (!(is.null(manualSizeType))){
+    Pelvis_X = Pelvis_X + scale_size_manual(values=manualSizeType)
+    Pelvis_Y = Pelvis_Y + scale_size_manual(values=manualSizeType)
+    Pelvis_Z = Pelvis_Z + scale_size_manual(values=manualSizeType)
+    
+    Hip_X = Hip_X + scale_size_manual(values=manualSizeType)
+    Hip_Y = Hip_Y + scale_size_manual(values=manualSizeType)
+    Hip_Z = Hip_Z + scale_size_manual(values=manualSizeType)
+    
+    Knee_X = Knee_X + scale_size_manual(values=manualSizeType)
+    Knee_Y = Knee_Y + scale_size_manual(values=manualSizeType)
+    Knee_Z = Knee_Z + scale_size_manual(values=manualSizeType)
+    
+    Ankle_X = Ankle_X + scale_size_manual(values=manualSizeType)
+    Ankle_Y = Ankle_Y + scale_size_manual(values=manualSizeType)
+    FootProgress_Z = FootProgress_Z + scale_size_manual(values=manualSizeType)
+    
+  }
+  
+
+            
   
   p1 = plot_grid(Pelvis_X, Pelvis_Y,Pelvis_Z,ncol=3)
   p2 = plot_grid(Hip_X, Hip_Y,Hip_Z,ncol=3)

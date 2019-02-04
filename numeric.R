@@ -226,6 +226,7 @@ LinearFit_onFrames<- function(table,factor1,factor2,comparisonLabel=NULL,frameIn
     valueA = as.numeric(df[b1:e1])
     valueB = as.numeric(df[b2:e2])  
     
+    
     model = lm(valueA~valueB)
     model_sum = summary(model)
     out = list(a0 = model$coefficients[1], a1 = model$coefficients[2], R2 = model_sum$adj.r.squared )
