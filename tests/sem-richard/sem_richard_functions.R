@@ -6,9 +6,9 @@ library(readxl)
 library(ggplot2)
 
 
-source("C:\\Users\\HLS501\\Documents\\Programming\\API\\pyCGM2\\pyCGM2-R\\pyCGM2-R\\reliability.R")
+source("C:\\Users\\HLS501\\Documents\\Programming\\API\\pyCGM2\\pyCGM2-R\\reliability.R")
 
-setwd("C:\\Users\\HLS501\\Documents\\Programming\\API\\pyCGM2\\pyCGM2-R\\pyCGM2-R")
+setwd("C:\\Users\\HLS501\\Documents\\Programming\\API\\pyCGM2\\pyCGM2-R")
 
 ### Complex ######
 
@@ -19,17 +19,18 @@ data=read_excel(myResults)
 
 #---- average session------ 
 
-
 sadf = ComputeSessionAverage(data)
 
+wsd = withinSubjectStandardDeviation(sadf)
+wod = withinOperatorStandardDeviation(sadf)
 
-wsd = withinSubjectDeviation(sadf)
 
-wod = withinOperatorDeviation(sadf)
 
-semAss = Sem_byAssessor(sadf)
+semAss = Sem_byAssessor(sadf,Anova=TRUE)
+semAssNo = Sem_byAssessor(sadf,Anova=FALSE)
 
-semAll = Sem_allAssessors(sadf)
+semAll = Sem_allAssessors(sadf,Anova=TRUE)
+semAllNo = Sem_allAssessors(sadf,Anova=FALSE)
 
 ba = betweenAssessors(sadf)
 
