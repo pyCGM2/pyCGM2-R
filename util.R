@@ -28,4 +28,10 @@ FRAMES = c("Frame0",           "Frame001",         "Frame002",         "Frame003
 getColumIndex <- function(table, colname){
     index = which( colnames(table)==colname)
     return(index)
-    }  
+}  
+
+
+renameColumnnLabel <-function(df,name,newName){
+  colnames(df)[colnames(df)==name] <- newName
+  return(df)
+}
